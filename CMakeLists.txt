@@ -9,6 +9,9 @@ include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 # Set Pico W as the target board
 set(PICO_BOARD pico_w)
 
+# CRITICAL: Force binary info generation
+set(PICO_ENABLE_BINARY_INFO 1)
+
 project(pico2w_lte_router)
 
 pico_sdk_init()
@@ -18,7 +21,12 @@ add_executable(pico2w_lte_router
     src/main.c
 )
 
-# Link libraries (minimal set)
+# CRITICAL: Set binary properties
+target_compile_definitions(pico2w_lte_router PRIVATE
+    PICO_ENABLE_BINARY_INFO=1
+)
+
+# Link libraries
 target_link_libraries(pico2w_lte_router 
     pico_stdlib
     hardware_gpio
