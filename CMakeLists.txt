@@ -1,33 +1,33 @@
 cmake_minimum_required(VERSION 3.13)
 
+# Initialize project FIRST
+project(pico2w_lte_router C CXX ASM)
+
 # Set PICO_SDK_PATH
 set(PICO_SDK_PATH "/tmp/pico-sdk")
 
 # Import Pico SDK
 include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-# Set Pico W as the target board
-set(PICO_BOARD pico_w)
-
-project(pico2w_lte_router)
-
+# Initialize SDK
 pico_sdk_init()
 
-# Add executable
+# Set target board
+set(PICO_BOARD pico_w)
+
+# Add main executable
 add_executable(pico2w_lte_router
     src/main.c
 )
 
-# Pull in common dependencies
-target_link_libraries(pico2w_lte_router pico_stdlib)
+# Link libraries - CRITICAL: Use pico_cyw43_arch_none for Pico W
+target_link_libraries(pico2w_lte_router 
+    pico_stdlib
+    pico_cyw43_arch_none
+)
 
-# Use the correct CYW43 arch for Pico W
-if (PICO_BOARD STREQUAL "pico_w")
-    target_link_libraries(pico2w_lte_router pico_cyw43_arch_none)
-endif()
-
-# Create map/bin/hex file etc.
+# Add extra outputs (UF2, etc)
 pico_add_extra_outputs(pico2w_lte_router)
 
-# Add URL via pico_set_program_url (this adds the binary info needed for auto-reboot)
+# Set program URL - this adds binary info needed for auto-reboot
 pico_set_program_url(pico2w_lte_router "https://github.com/zacharytam/pico2w-c-sdk")
