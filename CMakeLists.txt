@@ -36,3 +36,4 @@ pico_add_extra_outputs(pico2w_lte_router)
 
 # Force UF2 family ID for RP2040
 set(PICO_U2F_FAMILY_ID 0xe48bff56 CACHE INTERNAL "UF2 Family ID")
+
