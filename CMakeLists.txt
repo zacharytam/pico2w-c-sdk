@@ -6,9 +6,6 @@ set(PICO_SDK_PATH "/tmp/pico-sdk")
 # Import Pico SDK
 include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-# Set Pico W as the target board
-set(PICO_BOARD pico_w)
-
 project(pico2w_lte_router)
 
 pico_sdk_init()
