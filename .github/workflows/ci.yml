@@ -17,32 +17,81 @@ jobs:
     - name: Install Pico toolchain
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git wget
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git wget python3-pip
         
     - name: Setup Pico SDK
       run: |
         git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
         cd /tmp/pico-sdk
         git submodule update --init
+        echo "PICO_SDK_PATH=/tmp/pico-sdk" >> $GITHUB_ENV
         
-    - name: Build firmware
+    - name: Build firmware with correct toolchain
       run: |
         rm -rf build
         mkdir -p build
         cd build
-        cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
-        make -j4
         
-        echo "=== Built files ==="
-        ls -la *.uf2
+        # Set environment variables for ARM toolchain
+        export PICO_SDK_PATH=/tmp/pico-sdk
+        export PICO_TOOLCHAIN_PATH=/usr
+        export ARM_NONE_EABI_TOOLCHAIN_PATH=/usr
         
-    - name: Download official for comparison
+        # Configure with explicit ARM toolchain
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk \
+              -DPICO_BOARD=pico_w \
+              -DPICO_PLATFORM=rp2040 \
+              -DPICO_COMPILER=pico_arm_gcc \
+              -DCMAKE_C_COMPILER=arm-none-eabi-gcc \
+              -DCMAKE_CXX_COMPILER=arm-none-eabi-g++ \
+              -DCMAKE_ASM_COMPILER=arm-none-eabi-gcc \
+              -DCMAKE_OBJCOPY=arm-none-eabi-objcopy \
+              -DCMAKE_OBJDUMP=arm-none-eabi-objdump \
+              -DCMAKE_SIZE=arm-none-eabi-size \
+              ..
+        
+        # Build only our specific target to avoid SDK build issues
+        make pico2w_lte_router -j4
+        
+        echo "=== Built firmware files ==="
+        find . -name "*.uf2" -o -name "*.elf" -o -name "*.bin" | head -10
+        
+    - name: Verify UF2 file
       run: |
         cd build
-        wget -q -O official_blink.uf2 "https://rptl.io/pico-blink"
+        if [ -f "pico2w_lte_router.uf2" ]; then
+          echo "✅ UF2 file created successfully"
+          echo "📏 File size: $(stat -c%s pico2w_lte_router.uf2) bytes"
+          echo "🔍 UF2 header:"
+          hexdump -C pico2w_lte_router.uf2 | head -3 2>/dev/null || echo "Header check completed"
+        else
+          echo "❌ No UF2 file found"
+          echo "Available files:"
+          find . -type f -name "*.uf2" -o -name "*.elf" -o -name "*.bin" | head -10
+          exit 1
+        fi
         
-    - name: Upload all firmware files
+    - name: Download official blink for comparison
+      run: |
+        cd build
+        wget -q -O official_blink.uf2 "https://rptl.io/pico-blink" || echo "Could not download official UF2"
+        
+    - name: Compare with official
+      run: |
+        cd build
+        echo "=== Firmware Comparison ==="
+        if [ -f "pico2w_lte_router.uf2" ]; then
+          echo "Our firmware: $(stat -c%s pico2w_lte_router.uf2) bytes"
+        fi
+        if [ -f "official_blink.uf2" ]; then
+          echo "Official blink: $(stat -c%s official_blink.uf2) bytes"
+        fi
+        
+    - name: Upload firmware artifacts
       uses: actions/upload-artifact@v4
       with:
         name: pico2w-firmware
-        path: build/*.uf2
+        path: |
+          build/pico2w_lte_router.uf2
+          build/official_blink.uf2
+        retention-days: 7
