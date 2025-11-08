@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 # Set up project name and SDK
 include(pico_sdk_import.cmake)
+set(PICO_BOARD pico2w)
 project(blink C CXX ASM)
 pico_sdk_init()
 
