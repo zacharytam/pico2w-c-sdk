@@ -32,15 +32,12 @@ jobs:
         cd build
         cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
         make -j4
-        
-    - name: Check build output
-      run: |
-        cd build
+        # Verify the UF2 was created
         if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "✅ Build successful!"
-          ls -la *.uf2
+          echo "✅ Build successful - UF2 file created"
+          ls -lh *.uf2
         else
-          echo "❌ No UF2 file found"
+          echo "❌ Build failed - no UF2 file found"
           exit 1
         fi
         
