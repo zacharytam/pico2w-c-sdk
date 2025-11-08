@@ -13,20 +13,23 @@ project(pico2w_lte_router)
 
 pico_sdk_init()
 
-# Add include directories for lwipopts.h if you have it
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# Enable binary information
+set(PICO_ENABLE_BINARY_INFO 1)
 
 # Add your executable
 add_executable(pico2w_lte_router
     src/main.c
 )
 
-# Link libraries - minimal set for basic functionality
+# Set binary name explicitly
+pico_set_binary_name(pico2w_lte_router pico2w_lte_router)
+
+# Link libraries
 target_link_libraries(pico2w_lte_router 
     pico_stdlib
     hardware_gpio
     hardware_uart
 )
 
-# This must be the last command
+# This MUST be the last command
 pico_add_extra_outputs(pico2w_lte_router)
