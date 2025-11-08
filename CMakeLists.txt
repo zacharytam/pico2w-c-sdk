@@ -23,13 +23,10 @@ target_link_libraries(pico2w_lte_router
     pico_stdlib
     hardware_uart
     hardware_sync
-    pico_cyw43_arch
+    pico_cyw43_arch_lwip_threadsafe_background
+    pico_lwip
+    pico_mbedtls
     pico_cyw43_driver
-    lwip
-    mbedtls
-    pico_btstack
-    pico_cyw43_driver_bt
-    pico_cyw43_driver_lwip
 )
 
 pico_add_extra_outputs(pico2w_lte_router)
