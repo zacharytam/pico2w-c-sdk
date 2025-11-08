@@ -2,25 +2,14 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 
-// COMPREHENSIVE BINARY INFO - Critical for auto-reboot
+// Binary info metadata
 bi_decl(bi_program_name("pico2w_lte_router"));
 bi_decl(bi_program_description("LTE Router firmware for Raspberry Pi Pico 2W"));
 bi_decl(bi_program_version_string("1.0"));
-bi_decl(bi_program_build_date_string(__DATE__));
-bi_decl(bi_program_url("https://github.com/zacharytam/pico2w-c-sdk"));
 
-// LED configuration with binary info
+// LED configuration
 const uint LED_PIN = 25;
 bi_decl(bi_1pin_with_name(LED_PIN, "On-board LED"));
-
-// Program features
-bi_decl(bi_block_device(
-    BINARY_INFO_MAKE_TAG('S', 'D'),
-    "App",
-    (const uint8_t *)"pico2w_lte_router",
-    0x10000000,
-    0x10000000
-));
 
 int main() {
     // Initialize stdio immediately
@@ -34,7 +23,6 @@ int main() {
     sleep_ms(2500);
     
     printf("\n\n=== Pico 2W LTE Router ===\n");
-    printf("Build date: %s\n", __DATE__);
     printf("LED on GPIO %d\n", LED_PIN);
     printf("Firmware starting...\n");
     
@@ -45,11 +33,6 @@ int main() {
         gpio_put(LED_PIN, 0);
         sleep_ms(150);
     }
-    
-    // Then one long blink
-    gpio_put(LED_PIN, 1);
-    sleep_ms(500);
-    gpio_put(LED_PIN, 0);
     
     printf("Startup complete. Entering main loop.\n");
     
