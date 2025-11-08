@@ -25,66 +25,41 @@ jobs:
         cd /tmp/pico-sdk
         git submodule update --init
         
-    - name: Build all versions
+    - name: Build firmware
       run: |
         rm -rf build
         mkdir -p build
         cd build
-        
-        # Build with proper configuration
-        cmake -DPICO_SDK_PATH=/tmp/pico-sdk \
-              -DPICO_BOARD=pico_w \
-              -DPICO_PLATFORM=rp2040 \
-              ..
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
         make -j4
         
-        echo "=== All built files ==="
+        echo "=== Built files ==="
         ls -la *.uf2
-        echo ""
         
-    - name: Analyze binary content
+    - name: Compare with official
       run: |
         cd build
-        
-        # Download official for comparison
         wget -q -O official_blink.uf2 "https://rptl.io/pico-blink"
         
-        echo "=== Binary Info Analysis ==="
-        
-        # Check if our binaries have the proper structure
-        if [ -f "simple_blink.uf2" ]; then
-          echo "🔍 Simple blink analysis:"
-          strings simple_blink.uf2 | grep -i "simple_blink" | head -2 || echo "No binary info found in simple_blink"
-        fi
-        
+        echo "=== File Sizes ==="
+        echo "Official: $(stat -c%s official_blink.uf2) bytes"
         if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "🔍 Main firmware analysis:"
-          strings pico2w_lte_router.uf2 | grep -i "pico2w" | head -2 || echo "No binary info found in main firmware"
+          echo "Our:      $(stat -c%s pico2w_lte_router.uf2) bytes"
+        else
+          echo "Our:      NOT FOUND"
+          exit 1
         fi
-        
-        if [ -f "official_style_blink.uf2" ]; then
-          echo "🔍 Official style analysis:"
-          strings official_style_blink.uf2 | grep -i "official_style" | head -2 || echo "No binary info found in official_style"
-        fi
-        
-        echo "🔍 Official downloaded analysis:"
-        strings official_blink.uf2 | head -5
         
         echo ""
-        echo "=== File Sizes ==="
-        echo "Official downloaded: $(stat -c%s official_blink.uf2) bytes"
-        if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "Our main:           $(stat -c%s pico2w_lte_router.uf2) bytes"
-        fi
-        if [ -f "simple_blink.uf2" ]; then
-          echo "Simple blink:       $(stat -c%s simple_blink.uf2) bytes"
-        fi
-        if [ -f "official_style_blink.uf2" ]; then
-          echo "Official style:     $(stat -c%s official_style_blink.uf2) bytes"
-        fi
+        echo "=== UF2 Headers ==="
+        echo "Official:"
+        dd if=official_blink.uf2 bs=512 count=1 2>/dev/null | hexdump -C | head -3
+        echo ""
+        echo "Our:"
+        dd if=pico2w_lte_router.uf2 bs=512 count=1 2>/dev/null | hexdump -C | head -3
         
-    - name: Upload for testing
+    - name: Upload firmware
       uses: actions/upload-artifact@v4
       with:
-        name: test-firmwares
-        path: build/*.uf2
+        name: pico2w-firmware
+        path: build/pico2w_lte_router.uf2
