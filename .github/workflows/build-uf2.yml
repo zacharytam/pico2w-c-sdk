@@ -1,4 +1,4 @@
-name: Build Pico 2 W UF2
+name: Build Pico 2 W Blink UF2
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
+      # 1. Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -24,8 +24,8 @@ jobs:
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
-      # 4. Clean build directory
-      - name: Clean build folder
+      # 4. Clean build folder
+      - name: Prepare build
         run: |
           rm -rf build
           mkdir build
@@ -46,5 +46,5 @@ jobs:
       - name: Upload UF2
         uses: actions/upload-artifact@v4
         with:
-          name: pico2w-blink-uf2
+          name: pico2-blink-uf2
           path: build/*.uf2
