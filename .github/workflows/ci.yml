@@ -1,4 +1,4 @@
-name: Build Pico 2W LTE Router
+name: Build Official Blink Example
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build:
+  build-official-blink:
     runs-on: ubuntu-latest
     
     steps:
@@ -19,63 +19,44 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git wget
         
-    - name: Setup Pico SDK properly
+    - name: Clone Pico SDK and Examples
       run: |
         git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
         cd /tmp/pico-sdk
         git submodule update --init
         
-        # Set the PICO_SDK_PATH for the entire workflow
-        echo "PICO_SDK_PATH=/tmp/pico-sdk" >> $GITHUB_ENV
+        git clone https://github.com/raspberrypi/pico-examples.git /tmp/pico-examples
         
-    - name: Build using Pico SDK CMake wrapper
+    - name: Build official blink example
       run: |
-        rm -rf build
-        mkdir -p build
-        cd build
+        mkdir -p /tmp/pico-examples/build
+        cd /tmp/pico-examples/build
         
-        # Use the Pico SDK's CMake wrapper which handles the toolchain correctly
-        cmake -DPICO_SDK_PATH=/tmp/pico-sdk \
-              -DPICO_BOARD=pico_w \
-              -DPICO_PLATFORM=rp2040 \
-              ..
+        # Build the official blink example
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
+        make blink -j4
         
-        # Build only our target
-        make pico2w_lte_router -j4
+        echo "=== Official blink build results ==="
+        ls -la blink/*.uf2
         
-        echo "=== Built files ==="
-        ls -la *.uf2 || echo "No UF2 files found"
-        
-    - name: Verify UF2 file
+    - name: Copy and test official blink UF2
       run: |
-        cd build
-        if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "✅ UF2 file created successfully"
-          echo "📏 File size: $(stat -c%s pico2w_lte_router.uf2) bytes"
-          echo "🔍 Checking UF2 structure..."
-          # Check for UF2 signature
-          if hexdump -C pico2w_lte_router.uf2 2>/dev/null | head -1 | grep -q "UF2"; then
-            echo "✅ UF2 signature found"
-          else
-            echo "❌ UF2 signature missing"
-          fi
-        else
-          echo "❌ No UF2 file found"
-          echo "Available build artifacts:"
-          find . -name "*.elf" -o -name "*.bin" -o -name "*.hex" | head -10
-          exit 1
-        fi
+        # Copy the official built UF2 to our workspace
+        cp /tmp/pico-examples/build/blink/blink.uf2 ./official_built_blink.uf2
         
-    - name: Download official blink for comparison
-      run: |
-        cd build
-        wget -q -O official_blink.uf2 "https://rptl.io/pico-blink" || echo "Could not download official UF2"
+        echo "=== File comparison ==="
+        echo "Official downloaded: $(stat -c%s official_blink.uf2 2>/dev/null || echo 'N/A') bytes"
+        echo "Official built: $(stat -c%s official_built_blink.uf2) bytes"
         
-    - name: Upload firmware
+        echo "=== UF2 Headers ==="
+        echo "Official built blink:"
+        hexdump -C official_built_blink.uf2 | head -3
+        
+    - name: Upload both UF2 files
       uses: actions/upload-artifact@v4
       with:
-        name: pico2w-firmware
+        name: official-blink-comparison
         path: |
-          build/pico2w_lte_router.uf2
-          build/official_blink.uf2
+          official_built_blink.uf2
+          /tmp/pico-examples/build/blink/blink.uf2
         retention-days: 7
