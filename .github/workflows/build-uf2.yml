@@ -8,17 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout your repository
+      # 1. Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Install build tools
+      # 2. Install build dependencies
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y cmake gcc-arm-none-eabi build-essential git python3
 
-      # 3. Clone Pico SDK (v2.1.0 or newer)
+      # 3. Clone Pico SDK v2.1.0 with submodules
       - name: Clone Pico SDK
         run: |
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
@@ -36,13 +36,13 @@ jobs:
           cd build
           cmake .. -DPICO_SDK_PATH=$PICO_SDK_PATH
 
-      # 6. Build project
+      # 6. Build UF2
       - name: Build UF2
         run: |
           cd build
           make -j$(nproc)
 
-      # 7. Upload the generated UF2 file as artifact
+      # 7. Upload UF2 artifact
       - name: Upload UF2
         uses: actions/upload-artifact@v4
         with:
