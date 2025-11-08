@@ -17,38 +17,28 @@ jobs:
     - name: Install Pico toolchain
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          cmake \
-          gcc-arm-none-eabi \
-          libnewlib-arm-none-eabi \
-          build-essential \
-          git
-          
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git
+        
     - name: Setup Pico SDK
       run: |
-        # Clone Pico SDK
         git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
         cd /tmp/pico-sdk
         git submodule update --init
-        
-        # Verify the import file exists
-        ls -la /tmp/pico-sdk/external/
         echo "PICO_SDK_PATH=/tmp/pico-sdk" >> $GITHUB_ENV
         
-    - name: Build project
+    - name: Build project for Pico W
       run: |
         mkdir -p build
         cd build
-        cmake -DPICO_SDK_PATH=/tmp/pico-sdk ..
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
         make -j4
         
     - name: Check build output
       run: |
         cd build
-        echo "Build directory contents:"
-        ls -la
         if [ -f "pico2w_lte_router.uf2" ]; then
           echo "✅ Build successful!"
+          ls -la *.uf2
         else
           echo "❌ No UF2 file found"
           exit 1
