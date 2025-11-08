@@ -1,26 +1,28 @@
+#include <stdio.h>
 #include "pico/stdlib.h"
-#include "pico/binary_info.h"
-
-// Mark the LED pin in binary info (helps with UF2)
-bi_decl(bi_program_description("Pico 2W LTE Router"))
-bi_decl(bi_1pin_with_name(PICO_DEFAULT_LED_PIN, "On-board LED"))
 
 int main() {
+    stdio_init_all();
+    
     // Initialize LED
     const uint LED_PIN = PICO_DEFAULT_LED_PIN;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     
-    // Simple blink pattern
+    printf("=== Pico 2W LTE Router ===\n");
+    printf("Firmware starting...\n");
+    
+    int counter = 0;
     while (true) {
         gpio_put(LED_PIN, 1);
-        sleep_ms(100);
+        printf("LED ON - Count: %d\n", counter);
+        sleep_ms(500);
+        
         gpio_put(LED_PIN, 0);
-        sleep_ms(100);
-        gpio_put(LED_PIN, 1);
-        sleep_ms(100);
-        gpio_put(LED_PIN, 0);
-        sleep_ms(700);
+        printf("LED OFF - Count: %d\n", counter);
+        sleep_ms(500);
+        
+        counter++;
     }
     
     return 0;
