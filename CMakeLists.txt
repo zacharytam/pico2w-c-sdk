@@ -15,7 +15,7 @@ project(pico2w_lte_router C CXX ASM)
 # Initialize SDK - this sets up proper binary info
 pico_sdk_init()
 
-# Add executables
+# Add all three executables
 add_executable(pico2w_lte_router
     src/main.c
 )
@@ -24,7 +24,11 @@ add_executable(simple_blink
     src/simple_blink.c
 )
 
-# Link libraries for both
+add_executable(official_style_blink
+    src/official_style_blink.c
+)
+
+# Link libraries for all
 target_link_libraries(pico2w_lte_router 
     pico_stdlib
     hardware_gpio
@@ -36,6 +40,12 @@ target_link_libraries(simple_blink
     hardware_gpio
 )
 
+target_link_libraries(official_style_blink 
+    pico_stdlib
+    hardware_gpio
+)
+
 # Add extra outputs (UF2, etc) - MUST be last
 pico_add_extra_outputs(pico2w_lte_router)
 pico_add_extra_outputs(simple_blink)
+pico_add_extra_outputs(official_style_blink)
