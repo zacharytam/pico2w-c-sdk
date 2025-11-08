@@ -18,15 +18,10 @@ add_executable(pico2w_lte_router
     src/main.c
 )
 
-# Link libraries in the correct order with proper dependencies
+# Minimal library set for basic Pico W functionality
 target_link_libraries(pico2w_lte_router 
     pico_stdlib
-    hardware_uart
-    hardware_sync
     pico_cyw43_arch_lwip_threadsafe_background
-    pico_lwip
-    pico_mbedtls
-    pico_cyw43_driver
 )
 
 pico_add_extra_outputs(pico2w_lte_router)
