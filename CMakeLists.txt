@@ -20,6 +20,3 @@ endif()
 
 # Create UF2, map, etc.
 pico_add_extra_outputs(blink)
-
-# Add URL (optional)
-example_auto_set_url(blink)
