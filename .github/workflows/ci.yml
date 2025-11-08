@@ -1,48 +1,33 @@
-name: Build Pico 2W LTE Router
-
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Install Pico toolchain
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git
-        
-    - name: Setup Pico SDK
-      run: |
-        git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
-        cd /tmp/pico-sdk
-        git submodule update --init
-        echo "PICO_SDK_PATH=/tmp/pico-sdk" >> $GITHUB_ENV
-        
     - name: Build project for Pico W
       run: |
+        # Clean build directory
+        rm -rf build
         mkdir -p build
         cd build
-        cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
-        make -j4
-        # Verify the UF2 was created
+        
+        # Configure with explicit settings
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk \
+              -DPICO_BOARD=pico_w \
+              -DPICO_PLATFORM=rp2040 \
+              -DPICO_TARGET_NAME=pico2w_lte_router \
+              -DPICO_U2F_FAMILY_ID=0xe48bff56 \
+              ..
+        
+        # Build with verbose output to see any issues
+        make -j4 VERBOSE=1
+        
+        # Verify the outputs
+        echo "=== Build Artifacts ==="
+        ls -la *.uf2 *.bin *.hex || echo "No output files found"
+        
+        # Specifically check for UF2
         if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "✅ Build successful - UF2 file created"
-          ls -lh *.uf2
+          echo "✅ UF2 file created successfully"
+          echo "📊 File info:"
+          ls -lh pico2w_lte_router.uf2
+          echo "🔍 UF2 header:"
+          hexdump -C pico2w_lte_router.uf2 | head -10
         else
-          echo "❌ Build failed - no UF2 file found"
+          echo "❌ No UF2 file found!"
           exit 1
         fi
-        
-    - name: Upload firmware
-      uses: actions/upload-artifact@v4
-      with:
-        name: pico2w-firmware
-        path: build/*.uf2
