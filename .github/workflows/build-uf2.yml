@@ -21,7 +21,7 @@ jobs:
       # 3. Get the Pico SDK
       - name: Clone Pico SDK
         run: |
-          git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
+          git clone --branch 2.0.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           cd pico-sdk
           git fetch --tags
           git checkout master
