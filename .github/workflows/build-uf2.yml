@@ -19,7 +19,7 @@ jobs:
           sudo apt install -y cmake gcc-arm-none-eabi build-essential git
 
       # 3. Get the Pico SDK
-      - name: Clone Pico SDK (v2.1.0)
+      - name: Clone Pico SDK
         run: |
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
