@@ -36,30 +36,13 @@ jobs:
         echo "=== Built files ==="
         ls -la *.uf2
         
-    - name: Compare with official
+    - name: Download official for comparison
       run: |
         cd build
         wget -q -O official_blink.uf2 "https://rptl.io/pico-blink"
         
-        echo "=== File Sizes ==="
-        echo "Official: $(stat -c%s official_blink.uf2) bytes"
-        if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "Our:      $(stat -c%s pico2w_lte_router.uf2) bytes"
-        else
-          echo "Our:      NOT FOUND"
-          exit 1
-        fi
-        
-        echo ""
-        echo "=== UF2 Headers ==="
-        echo "Official:"
-        dd if=official_blink.uf2 bs=512 count=1 2>/dev/null | hexdump -C | head -3
-        echo ""
-        echo "Our:"
-        dd if=pico2w_lte_router.uf2 bs=512 count=1 2>/dev/null | hexdump -C | head -3
-        
-    - name: Upload firmware
+    - name: Upload all firmware files
       uses: actions/upload-artifact@v4
       with:
         name: pico2w-firmware
-        path: build/pico2w_lte_router.uf2
+        path: build/*.uf2
