@@ -1,10 +1,10 @@
-name: Pico CI
+name: Build Pico 2W LTE Router
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
   build:
@@ -13,44 +13,49 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        
+      
+    - name: Install Pico toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          gcc-arm-none-eabi \
+          libnewlib-arm-none-eabi \
+          build-essential \
+          git
+          
     - name: Setup Pico SDK
       run: |
-        # Use the pico_setup.sh approach
-        wget -O pico_setup.sh https://raw.githubusercontent.com/raspberrypi/pico-setup/master/pico_setup.sh
-        chmod +x pico_setup.sh
+        # Clone Pico SDK
+        git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
+        cd /tmp/pico-sdk
+        git submodule update --init
         
-        # Run only the essential parts (skip interactive prompts)
-        export DEBIAN_FRONTEND=noninteractive
-        yes | ./pico_setup.sh || true
-        
-        # Verify setup
-        arm-none-eabi-gcc --version
-        echo "PICO_SDK_PATH is set to: $PICO_SDK_PATH"
+        # Verify the import file exists
+        ls -la /tmp/pico-sdk/external/
+        echo "PICO_SDK_PATH=/tmp/pico-sdk" >> $GITHUB_ENV
         
     - name: Build project
       run: |
         mkdir -p build
         cd build
-        cmake ..
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk ..
         make -j4
         
-    - name: Run tests
+    - name: Check build output
       run: |
         cd build
-        if [ -f "*.uf2" ]; then
+        echo "Build directory contents:"
+        ls -la
+        if [ -f "pico2w_lte_router.uf2" ]; then
           echo "✅ Build successful!"
-          find . -name "*.uf2" -exec echo "Built: {}" \;
         else
-          echo "❌ Build failed - no UF2 file produced"
+          echo "❌ No UF2 file found"
           exit 1
         fi
         
-    - name: Upload build artifacts
+    - name: Upload firmware
       uses: actions/upload-artifact@v4
       with:
-        name: pico-firmware
+        name: pico2w-firmware
         path: build/*.uf2
-        retention-days: 7
