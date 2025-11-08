@@ -1,23 +1,24 @@
 #include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"  // Wi-Fi + LED
 
-#ifndef LED_PIN
-#define LED_PIN 25   // Pico 2 W onboard LED
-#endif
-
-#ifndef LED_DELAY_MS
 #define LED_DELAY_MS 250
-#endif
 
 int main() {
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, true);
+    // Initialize Wi-Fi driver (needed to control onboard LED)
+    if (cyw43_arch_init()) {
+        return -1;  // Initialization failed
+    }
 
     while (true) {
-        gpio_put(LED_PIN, true);  // LED ON
+        // Turn LED on
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, true);
         sleep_ms(LED_DELAY_MS);
-        gpio_put(LED_PIN, false); // LED OFF
+
+        // Turn LED off
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
         sleep_ms(LED_DELAY_MS);
     }
 
+    cyw43_arch_deinit();
     return 0;
 }
