@@ -1,7 +1,15 @@
-// Simple blink that should behave like official example
 #include "pico/stdlib.h"
+#include "pico/binary_info.h"
+
+// CRITICAL: Add binary info for auto-reboot
+bi_decl(bi_program_name("simple_blink"));
+bi_decl(bi_program_description("Simple blink test for Pico 2W"));
+bi_decl(bi_program_version_string("1.0"));
 
 const uint LED_PIN = 25;
+
+// Add binary info for the LED pin
+bi_decl(bi_1pin_with_name(LED_PIN, "On-board LED"));
 
 int main() {
     gpio_init(LED_PIN);
@@ -14,4 +22,3 @@ int main() {
         sleep_ms(250);
     }
 }
-
