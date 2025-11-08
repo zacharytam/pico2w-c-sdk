@@ -21,7 +21,11 @@ jobs:
       # 3. Get the Pico SDK
       - name: Clone Pico SDK
         run: |
-          git clone --depth=1 https://github.com/raspberrypi/pico-sdk.git
+          git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
+          cd pico-sdk
+          git fetch --tags
+          git checkout master
+          cd ..
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
       # 4. Configure and build
