@@ -1,63 +1,47 @@
-/**
- * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
+#include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 
-// Perform initialisation
-int pico_led_init(void) {
-#if defined(PICO_DEFAULT_LED_PIN)
-    // Pico with GPIO LED
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-    return PICO_OK;
-#elif defined(CYW43_WL_GPIO_LED_PIN)
-    // Pico W - initialise the wifi driver
-    return cyw43_arch_init();
-#else
-    return PICO_ERROR_NOT_PERMITTED;
-#endif
-}
-
-// Turn the led on or off
-void pico_set_led(bool led_on) {
-#if defined(PICO_DEFAULT_LED_PIN)
-    gpio_put(PICO_DEFAULT_LED_PIN, led_on);
-#elif defined(CYW43_WL_GPIO_LED_PIN)
-    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led_on);
-#endif
-}
-
 int main() {
+    // Initialize stdio
     stdio_init_all();
-    sleep_ms(2000); // Wait for serial
+    
+    // Wait a bit for serial connection
+    sleep_ms(2000);
     
     printf("=== Pico 2W LTE Router ===\n");
-    printf("Firmware starting...\n");
+    printf("Initializing...\n");
     
-    int rc = pico_led_init();
-    if (rc != PICO_OK) {
-        printf("LED init failed: %d\n", rc);
-        return rc;
+    // Initialize CYW43 driver (required for Pico W LED)
+    if (cyw43_arch_init()) {
+        printf("ERROR: CYW43 init failed!\n");
+        return -1;
     }
     
-    printf("LED initialized successfully\n");
-    printf("Starting blink pattern...\n");
+    printf("CYW43 initialized successfully\n");
+    printf("LED should start blinking...\n");
     
     int counter = 0;
     while (true) {
-        pico_set_led(true);
+        // Turn LED ON
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
         printf("Count: %d - LED ON\n", counter);
         sleep_ms(500);
-        pico_set_led(false);
+        
+        // Turn LED OFF
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
         printf("Count: %d - LED OFF\n", counter);
         sleep_ms(500);
+        
         counter++;
+        
+        // Reset counter periodically
+        if (counter > 1000) {
+            counter = 0;
+        }
     }
     
+    // Cleanup (we never get here)
+    cyw43_arch_deinit();
     return 0;
 }
-
