@@ -3,11 +3,15 @@
 
 int main() {
     stdio_init_all();
-    printf("Pico 2W LTE Router Starting...\n");
+    sleep_ms(2000);  // Wait for serial
+    
+    printf("=== Pico 2W LTE Router ===\n");
+    printf("Build successful! 🎉\n");
+    printf("Board: Pico W/2W\n");
     
     while (true) {
-        printf("Hello from Pico 2W!\n");
-        sleep_ms(1000);
+        printf("Running...\n");
+        sleep_ms(5000);
     }
     
     return 0;
