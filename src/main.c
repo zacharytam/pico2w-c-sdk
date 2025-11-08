@@ -4,13 +4,15 @@
 int main() {
     stdio_init_all();
     
-    // Initialize LED
-    const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+    // Pico 2W LED is on GPIO 25 (same as Pico W)
+    // But we need to define it manually since PICO_DEFAULT_LED_PIN might not be defined
+    const uint LED_PIN = 25;
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     
     printf("=== Pico 2W LTE Router ===\n");
     printf("Firmware starting...\n");
+    printf("LED on GPIO %d\n", LED_PIN);
     
     int counter = 0;
     while (true) {
