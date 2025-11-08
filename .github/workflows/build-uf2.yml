@@ -1,4 +1,4 @@
-name: Build Pico UF2
+name: Build Pico 2 W UF2
 
 on:
   workflow_dispatch:
@@ -8,37 +8,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout your code
-      - name: Checkout repository
+      # 1. Checkout your repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Install dependencies
-      - name: Install build tools
+      # 2. Install build tools
+      - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y cmake gcc-arm-none-eabi build-essential git
+          sudo apt install -y cmake gcc-arm-none-eabi build-essential git python3
 
-      # 3. Get the Pico SDK
+      # 3. Clone Pico SDK (v2.1.0 or newer)
       - name: Clone Pico SDK
         run: |
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
-      # 4. Configure and build
-      - name: Configure CMake
+      # 4. Clean build directory
+      - name: Clean build folder
         run: |
+          rm -rf build
           mkdir build
-          cd build
-          cmake .. -DPICO_SDK_PATH=$PICO_SDK_PATH -DPICO_BOARD=pico2w
 
-      - name: Build project
+      # 5. Configure CMake
+      - name: Configure project
+        run: |
+          cd build
+          cmake .. -DPICO_SDK_PATH=$PICO_SDK_PATH
+
+      # 6. Build project
+      - name: Build UF2
         run: |
           cd build
           make -j$(nproc)
 
-      # 5. Upload UF2 as artifact
-      - name: Upload UF2 artifact
+      # 7. Upload the generated UF2 file as artifact
+      - name: Upload UF2
         uses: actions/upload-artifact@v4
         with:
-          name: pico-blink-uf2
+          name: pico2w-blink-uf2
           path: build/*.uf2
