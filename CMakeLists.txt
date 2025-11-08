@@ -17,10 +17,5 @@ add_executable(blink
 # Link libraries
 target_link_libraries(blink pico_stdlib)
 
-# For Pico 2 W (Wi-Fi/LED)
-if (PICO_CYW43_SUPPORTED)
-    target_link_libraries(blink pico_cyw43_arch_none tinyusb_device tinyusb_board)
-endif()
-
 # Generate UF2 / map / hex
 pico_add_extra_outputs(blink)
