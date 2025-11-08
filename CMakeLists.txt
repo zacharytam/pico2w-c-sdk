@@ -13,15 +13,19 @@ project(pico2w_lte_router)
 
 pico_sdk_init()
 
+# Add include directories for lwipopts.h
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # Add your executable
 add_executable(pico2w_lte_router
     src/main.c
 )
 
-# Minimal library set for basic Pico W functionality
+# Link libraries - use the non-lwip version since we're not using Wi-Fi in basic test
 target_link_libraries(pico2w_lte_router 
     pico_stdlib
-    pico_cyw43_arch_lwip_threadsafe_background
+    hardware_uart
+    hardware_sync
 )
 
 pico_add_extra_outputs(pico2w_lte_router)
