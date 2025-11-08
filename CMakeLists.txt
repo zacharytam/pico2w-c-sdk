@@ -1,29 +1,34 @@
 cmake_minimum_required(VERSION 3.13)
 
+# Set PICO_SDK_PATH
 set(PICO_SDK_PATH "/tmp/pico-sdk")
+
+# Import Pico SDK
 include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
+# Set Pico W as the target board - MUST be before project()
 set(PICO_BOARD pico_w)
-set(PICO_ENABLE_BINARY_INFO 1)
 
-project(pico2w_lte_router)
+# Initialize project
+project(pico2w_lte_router C CXX ASM)
 
+# Initialize SDK - this sets up proper binary info
 pico_sdk_init()
 
-# Main executable
+# Add executables
 add_executable(pico2w_lte_router
     src/main.c
 )
 
+add_executable(simple_blink
+    src/simple_blink.c
+)
+
+# Link libraries for both
 target_link_libraries(pico2w_lte_router 
     pico_stdlib
     hardware_gpio
     hardware_uart
-)
-
-# Simple blink executable
-add_executable(simple_blink
-    src/simple_blink.c
 )
 
 target_link_libraries(simple_blink 
@@ -31,5 +36,6 @@ target_link_libraries(simple_blink
     hardware_gpio
 )
 
+# Add extra outputs (UF2, etc) - MUST be last
 pico_add_extra_outputs(pico2w_lte_router)
 pico_add_extra_outputs(simple_blink)
