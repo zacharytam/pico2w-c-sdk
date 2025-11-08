@@ -1,3 +1,33 @@
+name: Build Pico 2W LTE Router
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+      
+    - name: Install Pico toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential git
+        
+    - name: Setup Pico SDK
+      run: |
+        git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
+        cd /tmp/pico-sdk
+        git submodule update --init
+        echo "PICO_SDK_PATH=/tmp/pico-sdk" >> $GITHUB_ENV
+        
     - name: Build project for Pico W
       run: |
         # Clean build directory
@@ -19,7 +49,7 @@
         echo "=== Checking UF2 file ==="
         if [ -f "pico2w_lte_router.uf2" ]; then
           echo "✅ UF2 file exists"
-          echo "📊 File size: $(ls -lh pico2w_lte_router.uf2)"
+          echo "📊 File size: $(ls -lh pico2w_lte_router.uf2 | awk '{print $5}')"
           
           # Check UF2 header for proper family ID
           echo "🔍 Checking UF2 header:"
@@ -29,9 +59,16 @@
           if hexdump -C pico2w_lte_router.uf2 | head -3 | grep -q "56 ff 8b e4"; then
             echo "✅ UF2 has correct RP2040 family ID"
           else
-            echo "❌ UF2 missing RP2040 family ID - auto-reboot may not work"
+            echo "⚠️ UF2 may have incorrect family ID"
           fi
         else
           echo "❌ No UF2 file found!"
           exit 1
         fi
+        
+    - name: Upload firmware
+      uses: actions/upload-artifact@v4
+      with:
+        name: pico2w-firmware
+        path: build/*.uf2
+        retention-days: 7
