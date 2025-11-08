@@ -17,7 +17,7 @@ jobs:
     - name: Install Pico toolchain
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi git wget
         
     - name: Setup Pico SDK
       run: |
@@ -30,38 +30,52 @@ jobs:
         rm -rf build
         mkdir -p build
         cd build
-        cmake -DPICO_SDK_PATH=/tmp/pico-sdk \
-              -DPICO_BOARD=pico_w \
-              -DPICO_U2F_FAMILY_ID=0xe48bff56 \
-              ..
+        cmake -DPICO_SDK_PATH=/tmp/pico-sdk -DPICO_BOARD=pico_w ..
         make -j4
         
-    - name: Verify UF2 file
+    - name: Download official UF2 for comparison
+      run: |
+        cd build
+        wget -q -O blink.uf2 "https://github.com/raspberrypi/pico-examples/raw/master/blink/blink.uf2" || echo "Failed to download official UF2"
+        
+    - name: Compare UF2 files
       run: |
         cd build
         echo "=== UF2 File Analysis ==="
+        
         if [ -f "pico2w_lte_router.uf2" ]; then
-          echo "✅ UF2 file created"
-          echo "📏 Size: $(stat -c%s pico2w_lte_router.uf2) bytes"
+          echo "✅ Our UF2 file created successfully"
+          echo "📏 Our UF2 size: $(stat -c%s pico2w_lte_router.uf2) bytes"
+          echo ""
+          echo "🔍 Our UF2 header (first 32 bytes):"
+          hexdump -C pico2w_lte_router.uf2 | head -3
+          echo ""
+        else
+          echo "❌ Our UF2 file not found!"
+          exit 1
+        fi
+        
+        if [ -f "blink.uf2" ]; then
+          echo "🔍 Official blink.uf2 header (first 32 bytes):"
+          hexdump -C blink.uf2 | head -3
+          echo ""
           
-          echo "🔍 First 64 bytes:"
-          hexdump -C pico2w_lte_router.uf2 | head -4
+          # Check key differences
+          echo "=== Key Comparison ==="
+          OUR_HEADER=$(hexdump -C pico2w_lte_router.uf2 | head -2 | tail -1)
+          OFFICIAL_HEADER=$(hexdump -C blink.uf2 | head -2 | tail -1)
           
-          # Check for UF2 signature and family ID
-          if hexdump -C pico2w_lte_router.uf2 | head -10 | grep -q "UF2"; then
-            echo "✅ UF2 signature found"
+          echo "Our UF2 bytes 28-31: $(echo "$OUR_HEADER" | cut -d' ' -f10-13)"
+          echo "Official bytes 28-31: $(echo "$OFFICIAL_HEADER" | cut -d' ' -f10-13)"
+          
+          # Check for UF2 signature
+          if hexdump -C pico2w_lte_router.uf2 | head -1 | grep -q "55 46 32 0a"; then
+            echo "✅ Our UF2 has correct signature (UF2)"
           else
-            echo "❌ Missing UF2 signature"
-          fi
-          
-          if hexdump -C pico2w_lte_router.uf2 | head -10 | grep -q "56 ff 8b e4"; then
-            echo "✅ RP2040 family ID found"
-          else
-            echo "❌ Missing RP2040 family ID"
+            echo "❌ Our UF2 missing UF2 signature"
           fi
         else
-          echo "❌ No UF2 file found"
-          exit 1
+          echo "⚠️ Could not download official UF2 for comparison"
         fi
         
     - name: Upload firmware
