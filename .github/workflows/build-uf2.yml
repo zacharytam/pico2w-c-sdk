@@ -25,7 +25,7 @@ jobs:
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           # Clone CYW43 driver (official Pico W Wi-Fi/BT driver)
           git clone --branch main --recurse-submodules https://github.com/georgerobotics/cyw43-driver.git
-          echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
+          echo "PICO_SDK_PATH=$PWD/pico-sdk" >> $GITHUB_ENV
           echo "CYW43_DRIVER_PATH=$PWD/cyw43-driver" >> $GITHUB_ENV
 
       # 4. Prepare clean build directory
