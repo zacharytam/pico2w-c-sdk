@@ -10,9 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize Pico SDK
 pico_sdk_init()
 
-# Add CYW43 driver (already included in SDK)
-add_subdirectory($ENV{PICO_SDK_PATH}/lib/cyw43-driver cyw43-driver)
-
 # Add your source file
 add_executable(pico2w_ap_http main.c)
 
