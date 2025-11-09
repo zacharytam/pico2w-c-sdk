@@ -22,9 +22,9 @@ jobs:
     - name: Clone Pico SDK
       run: |
         git clone --branch 2.1.0 --depth=1 https://github.com/raspberrypi/pico-sdk.git
+        cd pico-sdk
+        git submodule update --init --recursive
         echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
-        git clone https://github.com/raspberrypi/pico-extras.git
-        echo "PICO_EXTRAS_PATH=${GITHUB_WORKSPACE}/pico-extras" >> $GITHUB_ENV
 
     # ---- Configure and build ----
     - name: Configure project
