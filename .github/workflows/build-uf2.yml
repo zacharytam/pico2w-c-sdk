@@ -18,29 +18,26 @@ jobs:
           sudo apt update
           sudo apt install -y cmake gcc-arm-none-eabi build-essential git python3
 
-      # 3. Clone Pico SDK and Pico Extras
-      - name: Clone Pico SDK and Extras
+      # 3. Clone official Pico SDK (with submodules including cyw43-driver)
+      - name: Clone Pico SDK
         run: |
-          # Clone Pico SDK
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           echo "PICO_SDK_PATH=$PWD/pico-sdk" >> $GITHUB_ENV
-          echo "CYW43_DRIVER_PATH=$PWD/pico-sdk/lib/cyw43-driver" >> $GITHUB_ENV
 
-      # 4. Prepare clean build directory
+      # 4. Prepare build directory
       - name: Prepare build
         run: |
           rm -rf build
           mkdir build
 
-      # 5. Configure the CMake project for Pico 2 W (RP2350)
+      # 5. Configure CMake project for Pico 2 W (RP2350)
       - name: Configure project
         run: |
           cd build
           cmake .. \
             -DPICO_BOARD=pico2 \
             -DPICO_PLATFORM=rp2350 \
-            -DPICO_SDK_PATH=$PICO_SDK_PATH \
-            -DCYW43_DRIVER_PATH=$CYW43_DRIVER_PATH
+            -DPICO_SDK_PATH=$PICO_SDK_PATH
 
       # 6. Build UF2 firmware
       - name: Build UF2
