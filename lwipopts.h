@@ -1,23 +1,29 @@
 #ifndef _LWIPOPTS_H
 #define _LWIPOPTS_H
 
-// Include the common minimal settings
-#include "lwipopts_examples_common.h"
+#define NO_SYS 0
+#define LWIP_SOCKET 1
+#define LWIP_NETCONN 1
+#define MEM_ALIGNMENT 4
+#define MEM_SIZE 10240
+#define MEMP_NUM_TCP_PCB 16
+#define MEMP_NUM_SYS_TIMEOUT 12
+#define TCP_SND_BUF 4096
+#define TCP_WND 4096
+#define TCP_MAXRTX 12
+#define TCP_SYNMAXRTX 6
 
-// Enable mDNS
 #define LWIP_MDNS_RESPONDER 1
 #define LWIP_IGMP 1
 #define LWIP_NUM_NETIF_CLIENT_DATA 1
 #define MDNS_RESP_USENETIF_EXTCALLBACK 1
 
-// HTTPD features
 #define LWIP_HTTPD_CGI 1
 #define LWIP_HTTPD_SSI 1
 #define LWIP_HTTPD_SSI_MULTIPART 1
 #define LWIP_HTTPD_SUPPORT_POST 1
 #define LWIP_HTTPD_SSI_INCLUDE_TAG 0
 
-// Generated file containing HTML data
 #define HTTPD_FSDATA_FILE "pico_fsdata.inc"
 
 #endif
