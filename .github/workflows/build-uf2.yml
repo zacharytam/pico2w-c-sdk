@@ -1,4 +1,4 @@
-name: Build Pico W HTTPD
+name: Build Pico W HTTP
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # ---- Checkout your repository ----
+    # ---- Checkout repository ----
     - name: Checkout source
       uses: actions/checkout@v4
 
@@ -16,9 +16,9 @@ jobs:
     - name: Install build tools
       run: |
         sudo apt update
-        sudo apt install -y cmake make gcc-arm-none-eabi binutils-arm-none-eabi
+        sudo apt install -y cmake build-essential gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
 
-    # ---- Fetch the official Pico SDK ----
+    # ---- Clone Pico SDK ----
     - name: Clone Pico SDK
       run: |
         git clone --branch 2.1.0 --depth=1 https://github.com/raspberrypi/pico-sdk.git
@@ -26,22 +26,22 @@ jobs:
         git submodule update --init --recursive
         echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
-    # ---- Configure and build project ----
-    - name: Configure project
+    # ---- Configure project ----
+    - name: Configure project with CMake
       run: |
         mkdir -p build
         cd build
         cmake .. \
-          -DCMAKE_TOOLCHAIN_FILE=../pico-sdk/cmake/preload/toolchains/pico_arm_cortex_m0_plus_gcc.cmake \
           -DPICO_BOARD=pico_w \
           -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }}
 
+    # ---- Build project ----
     - name: Build project
       run: |
         cd build
         make -j$(nproc)
 
-    # ---- Upload build outputs (.uf2, .elf, .bin) ----
+    # ---- Upload build outputs ----
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
