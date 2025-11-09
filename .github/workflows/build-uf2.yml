@@ -1,4 +1,4 @@
-name: Build Pico 2 W Firmware
+name: Build Pico W HTTPD
 
 on:
   workflow_dispatch:
@@ -7,54 +7,44 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Required for Raspberry Pi Pico SDK
     env:
       PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
+      PICO_EXAMPLES_PATH: ${{ github.workspace }}
 
     steps:
-      # ---- Checkout your project ----
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---- Get the Raspberry Pi Pico SDK ----
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y cmake gcc-arm-none-eabi build-essential git
+
       - name: Clone Pico SDK
         run: |
-          git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
-          cd pico-sdk
-          git submodule update --init --recursive
-          cd ..
-          echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
+          git clone https://github.com/raspberrypi/pico-sdk.git $PICO_SDK_PATH
+          cd $PICO_SDK_PATH
+          git submodule update --init
 
-      # ---- Install toolchain ----
-      - name: Install ARM GCC and CMake
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+      - name: Create build directory
+        run: mkdir -p build
 
-      # ---- Configure project ----
-      - name: Configure project
+      - name: Configure CMake
         run: |
-          mkdir -p build
           cd build
-          which arm-none-eabi-gcc
-          arm-none-eabi-gcc --version
+          cmake .. -DPICO_BOARD=pico_w
 
-          # Explicitly pass the full SDK path and make sure it's correct
-          cmake .. \
-            -DPICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk \
-            -DCMAKE_TOOLCHAIN_FILE=${GITHUB_WORKSPACE}/pico-sdk/cmake/preload/toolchains/pico_arm_cortex_m33_gcc.cmake \
-            -DPICO_BOARD=pico2 \
-            -DPICO_PLATFORM=rp2350 \
-            -DPICO_COPY_TO_RAM=0
-
-      # ---- Build project ----
-      - name: Build firmware
+      - name: Build project
         run: |
           cd build
           make -j$(nproc)
 
-      # ---- Upload UF2 artifact ----
-      - name: Upload UF2 firmware
-        uses: actions/upload-artifact@v4
+      - name: List outputs
+        run: ls -lh build
+
+      - name: Upload UF2 artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: pico2w_firmware
-          path: build/*.uf2
+          name: pico_w_httpd_uf2
+          path: build/pico_w_httpd.uf2
