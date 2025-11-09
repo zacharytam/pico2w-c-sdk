@@ -1,0 +1,18 @@
+#ifndef _LWIPOPTS_EXAMPLES_COMMON_H
+#define _LWIPOPTS_EXAMPLES_COMMON_H
+
+// Minimal example options for LWIP
+#define NO_SYS 0
+#define LWIP_SOCKET 1
+#define LWIP_NETCONN 1
+#define MEM_ALIGNMENT 4
+#define MEM_SIZE 10240
+#define MEMP_NUM_TCP_PCB 16
+#define MEMP_NUM_SYS_TIMEOUT 12
+
+#define TCP_SND_BUF 4096
+#define TCP_WND 4096
+#define TCP_MAXRTX 12
+#define TCP_SYNMAXRTX 6
+
+#endif // _LWIPOPTS_EXAMPLES_COMMON_H
