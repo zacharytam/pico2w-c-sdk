@@ -21,8 +21,10 @@ jobs:
       # 3. Clone Pico SDK and Pico Extras
       - name: Clone Pico SDK and Extras
         run: |
+          # Clone Pico SDK
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
-          git clone --recurse-submodules https://github.com/raspberrypi/pico-extras.git
+          # Clone CYW43 driver (official Pico W Wi-Fi/BT driver)
+          git clone --branch master --recurse-submodules https://github.com/georgerobotics/cyw43-driver.git
           # Copy import helper to your project root
           cp pico-extras/external/pico_extras_import.cmake .
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
