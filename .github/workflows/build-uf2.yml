@@ -36,8 +36,6 @@ jobs:
           -DPICO_BOARD=pico2 \
           -DPICO_PLATFORM=rp2350 \
           -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }} \
-          -DCMAKE_C_COMPILER=/usr/bin/arm-none-eabi-gcc \
-          -DCMAKE_CXX_COMPILER=/usr/bin/arm-none-eabi-g++ \
 
     - name: Build project
       run: |
