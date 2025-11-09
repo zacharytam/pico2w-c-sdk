@@ -32,7 +32,7 @@ jobs:
         mkdir -p build
         cd build
         cmake .. \
-          -DCMAKE_TOOLCHAIN_FILE=${{ env.PICO_SDK_PATH }}/cmake/preload/toolchains/pico_arm_cortex_m0plus_gcc.cmake \
+          -DCMAKE_TOOLCHAIN_FILE=../pico-sdk/cmake/preload/toolchains/pico_arm_cortex_m33_gcc.cmake \
           -DPICO_BOARD=pico_w \
           -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }}
 
