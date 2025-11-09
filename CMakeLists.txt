@@ -1,29 +1,30 @@
-# ---- Minimum CMake version and SDK import ----
 cmake_minimum_required(VERSION 3.13)
 
-# Import the Pico SDK (make sure PICO_SDK_PATH is set in your workflow)
-include(pico_sdk_import.cmake)
-
-# ---- Project setup ----
+# --- Define project ---
 project(pico2w_ap_http C CXX ASM)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+# --- Point directly to the SDK import file ---
+# (This uses the PICO_SDK_PATH from your GitHub Actions environment)
+include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+
+# --- Initialize the SDK ---
 pico_sdk_init()
 
-# ---- Your source files ----
-add_executable(pico2w_ap_http
-    main.c
-)
+# --- Add executable ---
+add_executable(pico2w_ap_http main.c)
 
-# ---- Link libraries ----
-# - pico_stdlib: core SDK functions (GPIO, UART, etc.)
-# - pico_cyw43_arch_lwip_threadsafe_background: Wi-Fi + lwIP (thread-safe background mode)
+# --- Link with standard Pico + Wi-Fi stack ---
 target_link_libraries(pico2w_ap_http
     pico_stdlib
+    hardware_gpio
     pico_cyw43_arch_lwip_threadsafe_background
 )
 
-# ---- Optional: enable stdio over USB or UART ----
+# --- Enable serial and USB output ---
 pico_enable_stdio_usb(pico2w_ap_http 1)
-pico_enable_stdio_uart(pico2w_ap_http 0)
+pico_enable_stdio_uart(pico2w_ap_http 1)
 
-# ---- Generate additional output formats (.uf2, .bin, .hex) ----
+# --- Create .uf2 / .bin outputs ---
 pico_add_extra_outputs(pico2w_ap_http)
