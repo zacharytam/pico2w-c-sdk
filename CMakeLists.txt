@@ -5,9 +5,16 @@ project(pico2w_ap_http C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-# --- Point directly to the SDK import file ---
-# (This uses the PICO_SDK_PATH from your GitHub Actions environment)
-include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+# --- Locate the SDK import file ---
+if (DEFINED PICO_SDK_PATH)
+    message(STATUS "Using PICO_SDK_PATH from environment: ${PICO_SDK_PATH}")
+    include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+elseif (EXISTS "${CMAKE_CURRENT_LIST_DIR}/pico-sdk/external/pico_sdk_import.cmake")
+    message(STATUS "Using local pico-sdk folder")
+    include(${CMAKE_CURRENT_LIST_DIR}/pico-sdk/external/pico_sdk_import.cmake)
+else()
+    message(FATAL_ERROR "pico_sdk_import.cmake not found! Please set PICO_SDK_PATH.")
+endif()
 
 # --- Initialize the SDK ---
 pico_sdk_init()
