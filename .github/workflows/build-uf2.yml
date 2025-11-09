@@ -1,4 +1,4 @@
-name: Build Pico 2W AP HTTP
+name: Build Pico W HTTPD
 
 on:
   workflow_dispatch:
@@ -8,14 +8,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # ---- Checkout your repository ----
     - name: Checkout source
       uses: actions/checkout@v4
 
+    # ---- Install build dependencies ----
     - name: Install build tools
       run: |
         sudo apt update
         sudo apt install -y gcc-arm-none-eabi binutils-arm-none-eabi cmake make
 
+    # ---- Clone Pico SDK ----
     - name: Clone Pico SDK
       run: |
         git clone --branch 2.1.0 --depth=1 https://github.com/raspberrypi/pico-sdk.git
@@ -23,7 +26,8 @@ jobs:
         git submodule update --init --recursive
         echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
-    - name: Configure project
+    # ---- Configure project ----
+    - name: Configure project with CMake
       run: |
         mkdir -p build
         cd build
@@ -32,15 +36,17 @@ jobs:
           -DPICO_BOARD=pico_w \
           -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }}
 
+    # ---- Build project ----
     - name: Build project
       run: |
         cd build
         make -j$(nproc)
 
-    - name: Upload build artifacts
+    # ---- Upload build artifacts ----
+    - name: Upload build outputs
       uses: actions/upload-artifact@v4
       with:
-        name: pico2w-ap-http
+        name: pico_w_httpd
         path: |
           build/*.uf2
           build/*.elf
