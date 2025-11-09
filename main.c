@@ -1,60 +1,74 @@
-#include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
-#include "hardware/uart.h"
+#include "pico/stdlib.h"
+
 #include "lwip/apps/httpd.h"
-#include "lwip/tcpip.h"
-#include <string.h>
+#include "lwip/apps/mdns.h"
+#include "lwip/init.h"
 
-#define UART_ID uart1
-#define UART_TX_PIN 4
-#define UART_RX_PIN 5
-#define BAUD_RATE 115200
+static bool led_on = false;
+static absolute_time_t wifi_connected_time;
 
-static const char *webpage =
-"<!DOCTYPE html>"
-"<html><head><title>Pico 2W HTTP</title></head>"
-"<body><h1>Pico 2 W + EC800K</h1>"
-"<p>Status: Connected</p>"
-"</body></html>";
-
-static const char* http_server_index_handler(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
-    (void)iIndex; (void)iNumParams; (void)pcParam; (void)pcValue;
-    return webpage;
+static const char *cgi_handler_led(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    if (iNumParams > 0 && strcmp(pcParam[0], "led") == 0) {
+        led_on = (strcmp(pcValue[0], "ON") == 0);
+        cyw43_gpio_set(&cyw43_state, 0, led_on); // GPIO 0 on Wi-Fi chip
+    }
+    return "/index.shtml";
 }
 
-void http_server_init_custom(void) {
-    httpd_init();
-    http_set_ssi_handler(http_server_index_handler, NULL, 0);
+static tCGI cgi_handlers[] = {
+    { "/", cgi_handler_led },
+    { "/index.shtml", cgi_handler_led },
+};
+
+static const char *ssi_tags[] = { "ledstate", "uptime" };
+
+u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
+    switch (iIndex) {
+        case 0: // ledstate
+            return snprintf(pcInsert, iInsertLen, "%s", led_on ? "ON" : "OFF");
+        case 1: // uptime
+            return snprintf(pcInsert, iInsertLen, "%llu", 
+                absolute_time_diff_us(wifi_connected_time, get_absolute_time()) / 1000000);
+    }
+    return 0;
 }
 
 int main() {
     stdio_init_all();
-    printf("Starting Pico 2 W AP + HTTP server + UART\n");
 
     if (cyw43_arch_init()) {
-        printf("CYW43 init failed!\n");
-        return -1;
+        printf("Failed to init cyw43_arch\n");
+        return 1;
     }
 
-    cyw43_arch_enable_ap_mode("Pico2W-EC800K", "12345678", CYW43_AUTH_WPA2_AES_PSK);
-    printf("Access Point started: SSID 'Pico2W-EC800K', IP 192.168.4.1\n");
+    cyw43_arch_enable_sta_mode();
 
-    uart_init(UART_ID, BAUD_RATE);
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-    printf("UART initialized for EC800K at %d baud\n", BAUD_RATE);
+    printf("Connecting to Wi-Fi...\n");
+    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+        printf("Failed to connect.\n");
+        return 1;
+    }
+    printf("Connected.\n");
 
-    tcpip_init(NULL, NULL);
-    http_server_init_custom();
+    wifi_connected_time = get_absolute_time();
+
+#if LWIP_MDNS_RESPONDER
+    cyw43_arch_lwip_begin();
+    mdns_resp_init();
+    mdns_resp_add_netif(&cyw43_state.netif[CYW43_ITF_STA], "pico_httpd", 60);
+    cyw43_arch_lwip_end();
+#endif
+
+    cyw43_arch_lwip_begin();
+    httpd_init();
+    http_set_cgi_handlers(cgi_handlers, LWIP_ARRAYSIZE(cgi_handlers));
+    http_set_ssi_handler(ssi_handler, ssi_tags, LWIP_ARRAYSIZE(ssi_tags));
+    cyw43_arch_lwip_end();
 
     while (true) {
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
-        sleep_ms(500);
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-        sleep_ms(500);
-        uart_puts(UART_ID, "AT\r\n");
+        sleep_ms(1000);
     }
 
     cyw43_arch_deinit();
-    return 0;
 }
