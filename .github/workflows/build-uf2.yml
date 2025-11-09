@@ -1,53 +1,53 @@
-name: Build Pico 2 W HTTP AP UF2
+name: Build Pico 2W AP HTTP
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout your repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    # ---- Checkout your repository ----
+    - name: Checkout source
+      uses: actions/checkout@v4
 
-      # 2. Install build dependencies
-      - name: Install build tools
-        run: |
-          sudo apt update
-          sudo apt install -y cmake gcc-arm-none-eabi build-essential git python3
+    # ---- Install dependencies ----
+    - name: Install build tools
+      run: |
+        sudo apt update
+        sudo apt install -y cmake gcc-arm-none-eabi build-essential python3
 
-      # 3. Clone official Pico SDK (with submodules including cyw43-driver)
-      - name: Clone Pico SDK
-        run: |
-          git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
-          echo "PICO_SDK_PATH=$PWD/pico-sdk" >> $GITHUB_ENV
+    # ---- Fetch the official Pico SDK ----
+    - name: Clone Pico SDK
+      run: |
+        git clone --branch 2.1.0 --depth=1 https://github.com/raspberrypi/pico-sdk.git
+        echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
-      # 4. Prepare build directory
-      - name: Prepare build
-        run: |
-          rm -rf build
-          mkdir build
+    # ---- Configure and build ----
+    - name: Configure project
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. \
+          -DPICO_BOARD=pico2 \
+          -DPICO_PLATFORM=rp2350 \
+          -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }}
 
-      # 5. Configure CMake project for Pico 2 W (RP2350)
-      - name: Configure project
-        run: |
-          cd build
-          cmake .. \
-            -DPICO_BOARD=pico2 \
-            -DPICO_PLATFORM=rp2350 \
-            -DPICO_SDK_PATH=$PICO_SDK_PATH
+    - name: Build project
+      run: |
+        cd build
+        make -j$(nproc)
 
-      # 6. Build UF2 firmware
-      - name: Build UF2
-        run: |
-          cd build
-          make -j$(nproc)
-
-      # 7. Upload UF2 artifact
-      - name: Upload UF2
-        uses: actions/upload-artifact@v4
-        with:
-          name: pico2w_ap_http_uf2
-          path: build/*.uf2
+    # ---- Upload build outputs (.uf2, .elf, .bin) ----
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: pico2w-ap-http
+        path: |
+          build/*.uf2
+          build/*.elf
+          build/*.bin
