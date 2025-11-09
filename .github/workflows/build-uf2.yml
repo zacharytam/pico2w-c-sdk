@@ -1,4 +1,4 @@
-name: Build Pico 2 W AP HTTP UF2
+name: Build Pico 2 W HTTP AP UF2
 
 on:
   workflow_dispatch:
@@ -6,9 +6,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
+    steps:
+      # 1. Checkout your repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install build dependencies
       - name: Install build tools
         run: |
           sudo apt update
@@ -19,25 +23,36 @@ jobs:
         run: |
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
           git clone --branch master https://github.com/raspberrypi/pico-extras.git
+          # Copy import helper to your project root
           cp pico-extras/external/pico_extras_import.cmake .
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
           echo "PICO_EXTRAS_PATH=${GITHUB_WORKSPACE}/pico-extras" >> $GITHUB_ENV
 
+      # 4. Prepare clean build directory
       - name: Prepare build
-        run: mkdir -p build
+        run: |
+          rm -rf build
+          mkdir build
 
+      # 5. Configure the CMake project for Pico 2 W (RP2350)
       - name: Configure project
         run: |
           cd build
-          cmake .. -DPICO_BOARD=pico2 -DPICO_PLATFORM=rp2350 -DPICO_SDK_PATH=$PICO_SDK_PATH
+          cmake .. \
+            -DPICO_BOARD=pico2 \
+            -DPICO_PLATFORM=rp2350 \
+            -DPICO_SDK_PATH=$PICO_SDK_PATH \
+            -DPICO_EXTRAS_PATH=$PICO_EXTRAS_PATH
 
+      # 6. Build UF2 firmware
       - name: Build UF2
         run: |
           cd build
           make -j$(nproc)
 
-      - name: Upload UF2 artifact
+      # 7. Upload UF2 artifact
+      - name: Upload UF2
         uses: actions/upload-artifact@v4
         with:
-          name: pico2w-ap-http-uf2
+          name: pico2w_ap_http_uf2
           path: build/*.uf2
