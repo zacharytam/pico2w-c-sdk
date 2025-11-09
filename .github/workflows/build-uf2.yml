@@ -19,6 +19,10 @@ jobs:
       - name: Clone Pico SDK
         run: |
           git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
+          cd pico-sdk
+          git submodule update --init --recursive
+          cd ..
+          echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
       # ---- Install toolchain ----
       - name: Install ARM GCC and CMake
