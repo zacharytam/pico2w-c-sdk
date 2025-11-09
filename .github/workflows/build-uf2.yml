@@ -44,7 +44,7 @@ jobs:
         run: ls -lh build
 
       - name: Upload UF2 artifact
-        uses: actions/upload-artifact@v3
+        uses: github/upload-artifact@v1
         with:
           name: pico_w_httpd_uf2
-          path: build/pico_w_httpd.uf2
+          path: build/picow_httpd_background.uf2
