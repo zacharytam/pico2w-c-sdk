@@ -1,4 +1,4 @@
-name: Build Pico W HTTPD
+name: Build Pico 2W AP HTTP
 
 on:
   workflow_dispatch:
@@ -7,44 +7,41 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # Required for Raspberry Pi Pico SDK
-    env:
-      PICO_SDK_PATH: ${{ github.workspace }}/pico-sdk
-      PICO_EXAMPLES_PATH: ${{ github.workspace }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout source
+      uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y cmake gcc-arm-none-eabi build-essential git
+    - name: Install build tools
+      run: |
+        sudo apt update
+        sudo apt install -y gcc-arm-none-eabi binutils-arm-none-eabi cmake make
 
-      - name: Clone Pico SDK
-        run: |
-          git clone https://github.com/raspberrypi/pico-sdk.git $PICO_SDK_PATH
-          cd $PICO_SDK_PATH
-          git submodule update --init
+    - name: Clone Pico SDK
+      run: |
+        git clone --branch 2.1.0 --depth=1 https://github.com/raspberrypi/pico-sdk.git
+        cd pico-sdk
+        git submodule update --init --recursive
+        echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
 
-      - name: Create build directory
-        run: mkdir -p build
+    - name: Configure project
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. \
+          -DCMAKE_TOOLCHAIN_FILE=${{ env.PICO_SDK_PATH }}/cmake/preload/toolchains/pico_arm_cortex_m0plus_gcc.cmake \
+          -DPICO_BOARD=pico_w \
+          -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }}
 
-      - name: Configure CMake
-        run: |
-          cd build
-          cmake .. -DPICO_BOARD=pico_w
+    - name: Build project
+      run: |
+        cd build
+        make -j$(nproc)
 
-      - name: Build project
-        run: |
-          cd build
-          make -j$(nproc)
-
-      - name: List outputs
-        run: ls -lh build
-
-      - name: Upload UF2 artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pico_w_httpd_uf2
-          path: build/picow_httpd_background.uf2
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: pico2w-ap-http
+        path: |
+          build/*.uf2
+          build/*.elf
+          build/*.bin
