@@ -29,6 +29,8 @@ jobs:
       run: |
         mkdir -p build
         cd build
+        which arm-none-eabi-gcc
+        arm-none-eabi-gcc --version
         cmake .. \
           -DPICO_BOARD=pico2 \
           -DPICO_PLATFORM=rp2350 \
