@@ -38,11 +38,12 @@ jobs:
           which arm-none-eabi-gcc
           arm-none-eabi-gcc --version
 
+          # Explicitly pass the full SDK path and make sure it's correct
           cmake .. \
-            -DCMAKE_TOOLCHAIN_FILE=../pico-sdk/cmake/preload/toolchains/pico_arm_cortex_m33_gcc.cmake \
+            -DPICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk \
+            -DCMAKE_TOOLCHAIN_FILE=${GITHUB_WORKSPACE}/pico-sdk/cmake/preload/toolchains/pico_arm_cortex_m33_gcc.cmake \
             -DPICO_BOARD=pico2 \
             -DPICO_PLATFORM=rp2350 \
-            -DPICO_SDK_PATH=../pico-sdk \
             -DPICO_COPY_TO_RAM=0
 
       # ---- Build project ----
