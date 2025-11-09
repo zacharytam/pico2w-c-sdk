@@ -16,7 +16,7 @@ jobs:
     - name: Install build tools
       run: |
         sudo apt update
-        sudo apt install -y cmake gcc-arm-none-eabi build-essential python3
+        sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi -y
 
     # ---- Fetch the official Pico SDK ----
     - name: Clone Pico SDK
