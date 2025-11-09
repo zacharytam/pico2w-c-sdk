@@ -10,8 +10,8 @@ project(blink C CXX ASM)
 pico_sdk_init()
 
 # Add executable
-add_executable(blink blink.c)
+add_executable(blink ec800k_webserver.c)
 target_link_libraries(blink pico_stdlib)
 
 # Generate UF2 and extra outputs
-pico_add_extra_outputs(blink)
+pico_add_extra_outputs(ec800k_webserver)
