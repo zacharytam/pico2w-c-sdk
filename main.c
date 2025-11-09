@@ -56,7 +56,7 @@ int main() {
 #if LWIP_MDNS_RESPONDER
     cyw43_arch_lwip_begin();
     mdns_resp_init();
-    mdns_resp_add_netif(&cyw43_state.netif[CYW43_ITF_STA], "pico_httpd", 60);
+    mdns_resp_add_netif(&cyw43_state.netif[CYW43_ITF_STA], "pico_httpd");
     cyw43_arch_lwip_end();
 #endif
 
