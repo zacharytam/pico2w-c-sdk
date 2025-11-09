@@ -1,4 +1,4 @@
-name: Build Pico W HTTPD
+name: Build Pico W HTTP
 
 on:
   workflow_dispatch:
@@ -8,15 +8,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # ---- Checkout your repository ----
+    # ---- Checkout repository ----
     - name: Checkout source
       uses: actions/checkout@v4
 
-    # ---- Install build dependencies ----
+    # ---- Install dependencies ----
     - name: Install build tools
       run: |
         sudo apt update
-        sudo apt install -y gcc-arm-none-eabi binutils-arm-none-eabi cmake make
+        sudo apt install -y cmake build-essential gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi
 
     # ---- Clone Pico SDK ----
     - name: Clone Pico SDK
@@ -32,7 +32,6 @@ jobs:
         mkdir -p build
         cd build
         cmake .. \
-          -DCMAKE_TOOLCHAIN_FILE=${{ env.PICO_SDK_PATH }}/cmake/preload/toolchains/pico_arm_cortex_m0plus_gcc.cmake \
           -DPICO_BOARD=pico_w \
           -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }}
 
@@ -42,8 +41,8 @@ jobs:
         cd build
         make -j$(nproc)
 
-    # ---- Upload build artifacts ----
-    - name: Upload build outputs
+    # ---- Upload build outputs ----
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: pico_w_httpd
