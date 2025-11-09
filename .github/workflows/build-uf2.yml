@@ -22,7 +22,7 @@ jobs:
       - name: Clone Pico SDK and Extras
         run: |
           git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-sdk.git
-          git clone --branch 2.1.0 --recurse-submodules https://github.com/raspberrypi/pico-extras.git
+          git clone --recurse-submodules https://github.com/raspberrypi/pico-extras.git
           # Copy import helper to your project root
           cp pico-extras/external/pico_extras_import.cmake .
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
