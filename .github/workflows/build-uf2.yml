@@ -32,6 +32,7 @@ jobs:
         which arm-none-eabi-gcc
         arm-none-eabi-gcc --version
         cmake .. \
+          -DCMAKE_TOOLCHAIN_FILE=../pico-sdk/pico_toolchain.cmake \
           -DPICO_BOARD=pico2 \
           -DPICO_PLATFORM=rp2350 \
           -DPICO_SDK_PATH=${{ env.PICO_SDK_PATH }} \
