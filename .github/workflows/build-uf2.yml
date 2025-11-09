@@ -28,7 +28,7 @@ jobs:
           # Copy import helper to your project root
           cp pico-extras/external/pico_extras_import.cmake .
           echo "PICO_SDK_PATH=${GITHUB_WORKSPACE}/pico-sdk" >> $GITHUB_ENV
-          echo "PICO_EXTRAS_PATH=${GITHUB_WORKSPACE}/pico-extras" >> $GITHUB_ENV
+          echo "CYW43_DRIVER_PATH=$PWD/cyw43-driver" >> $GITHUB_ENV
 
       # 4. Prepare clean build directory
       - name: Prepare build
@@ -44,7 +44,7 @@ jobs:
             -DPICO_BOARD=pico2 \
             -DPICO_PLATFORM=rp2350 \
             -DPICO_SDK_PATH=$PICO_SDK_PATH \
-            -DPICO_EXTRAS_PATH=$PICO_EXTRAS_PATH
+            -CYW43_DRIVER_PATH=$CYW43_DRIVER_PATH
 
       # 6. Build UF2 firmware
       - name: Build UF2
